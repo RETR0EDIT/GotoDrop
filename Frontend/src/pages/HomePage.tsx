@@ -1,5 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import {
+  TikTokIcon,
+  InstagramIcon,
+  YouTubeIcon,
+  TwitterIcon,
+  FacebookIcon,
+} from '../components/shared/Icons';
 import '../styles/pages/home.css';
 
 const HomePage: React.FC = () => {
@@ -47,10 +54,18 @@ const HomePage: React.FC = () => {
                 <p>Votre vidéo</p>
               </div>
               <div className="platforms-grid">
-                <div className="platform-icon tiktok">📱</div>
-                <div className="platform-icon instagram">📷</div>
-                <div className="platform-icon youtube">📺</div>
-                <div className="platform-icon twitter">🐦</div>
+                <div className="platform-icon tiktok">
+                  <TikTokIcon size={32} />
+                </div>
+                <div className="platform-icon instagram">
+                  <InstagramIcon size={32} />
+                </div>
+                <div className="platform-icon youtube">
+                  <YouTubeIcon size={32} />
+                </div>
+                <div className="platform-icon twitter">
+                  <TwitterIcon size={32} />
+                </div>
               </div>
             </div>
           </div>
@@ -63,35 +78,35 @@ const HomePage: React.FC = () => {
           <div className="platforms-list">
             <div className="platform-card">
               <div className="platform-logo tiktok-bg">
-                <span>📱</span>
+                <TikTokIcon size={32} />
               </div>
               <h3>TikTok</h3>
               <p>Format vertical optimisé pour l'engagement maximum</p>
             </div>
             <div className="platform-card">
               <div className="platform-logo instagram-bg">
-                <span>�</span>
+                <InstagramIcon size={32} />
               </div>
               <h3>Instagram Reels</h3>
               <p>Atteignez votre audience Instagram avec des Reels percutants</p>
             </div>
             <div className="platform-card">
               <div className="platform-logo youtube-bg">
-                <span>📺</span>
+                <YouTubeIcon size={32} />
               </div>
               <h3>YouTube Shorts</h3>
               <p>Maximisez votre visibilité sur la plus grande plateforme vidéo</p>
             </div>
             <div className="platform-card">
               <div className="platform-logo twitter-bg">
-                <span>🐦</span>
+                <TwitterIcon size={32} />
               </div>
               <h3>Twitter</h3>
               <p>Partagez vos vidéos courtes sur le réseau social de l'actualité</p>
             </div>
             <div className="platform-card">
               <div className="platform-logo facebook-bg">
-                <span>�</span>
+                <FacebookIcon size={32} />
               </div>
               <h3>Facebook Reels</h3>
               <p>Touchez l'audience Facebook avec du contenu vidéo engageant</p>
