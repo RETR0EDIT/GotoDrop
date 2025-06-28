@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import LoadingSpinner from '../shared/LoadingSpinner';
+import SocialButton from '../shared/SocialButton';
 import '../../styles/components/auth.css';
 
 interface SignupFormData {
@@ -359,12 +360,12 @@ const Signup: React.FC = () => {
         </div>
 
         <div className="social-auth">
-          <button className="btn btn-social google" disabled={loading}>
-            <span className="social-icon">🔍</span> S'inscrire avec Google
-          </button>
-          <button className="btn btn-social facebook" disabled={loading}>
-            <span className="social-icon">📘</span> S'inscrire avec Facebook
-          </button>
+          <SocialButton provider="google" disabled={loading}>
+            Continuer avec Google
+          </SocialButton>
+          <SocialButton provider="facebook" disabled={loading}>
+            Continuer avec Facebook
+          </SocialButton>
         </div>
 
         <div className="auth-footer">
