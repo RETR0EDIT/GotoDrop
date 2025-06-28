@@ -169,36 +169,46 @@
 }
 
 .platform-icon {
-  width: 50px;
-  height: 50px;
-  background: white;
-  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  animation: float 3s ease-in-out infinite;
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  transition: all 0.3s ease;
+  margin: 0.5rem;
 }
 
-.platform-icon:nth-child(2) {
-  animation-delay: 0.5s;
-}
-.platform-icon:nth-child(3) {
-  animation-delay: 1s;
-}
-.platform-icon:nth-child(4) {
-  animation-delay: 1.5s;
+.platform-icon:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+.platform-icon.tiktok {
+  border-color: #000000;
+  background: linear-gradient(45deg, #ff0050, #00f2ea);
+}
+
+.platform-icon.instagram {
+  border-color: #e4405f;
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+}
+
+.platform-icon.youtube {
+  border-color: #ff0000;
+  background: #ff0000;
+}
+
+.platform-icon.twitter {
+  border-color: #1da1f2;
+  background: #1da1f2;
+}
+
+.platform-icon.facebook {
+  border-color: #1877f2;
+  background: #1877f2;
 }
 
 /* Sections générales */
@@ -222,106 +232,68 @@
 }
 
 .platform-card {
-  background: white;
-  border-radius: var(--border-radius-lg);
-  padding: 2rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
   text-align: center;
-  box-shadow: var(--shadow-md);
   transition: all 0.3s ease;
-  border: 1px solid var(--border-light);
-  position: relative;
-  overflow: hidden;
-}
-
-.platform-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: var(--border-light);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .platform-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-xl);
-  background: var(--bg-secondary);
-}
-
-.platform-card:hover::before {
-  background: var(--primary-color);
-}
-
-.platform-card.coming-soon {
-  opacity: 0.7;
-  background: var(--bg-secondary);
-}
-
-.platform-card.coming-soon::before {
-  background: var(--text-muted);
-}
-
-.platform-card.coming-soon:hover {
-  background: var(--bg-tertiary);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
 }
 
 .platform-logo {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 1.5rem;
-  font-size: 2rem;
-  background: var(--bg-secondary);
-  position: relative;
-  z-index: 1;
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  margin: 0 auto 1rem;
+  transition: all 0.3s ease;
 }
 
-/* Couleurs des plateformes avec meilleur contraste */
-.tiktok-bg {
+.platform-logo.tiktok-bg {
   background: linear-gradient(45deg, #ff0050, #00f2ea);
   color: white;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-.instagram-bg {
+.platform-logo.instagram-bg {
   background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
   color: white;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-.youtube-bg {
-  background: linear-gradient(45deg, #ff0000, #ff6b6b);
+.platform-logo.youtube-bg {
+  background: #ff0000;
   color: white;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-.twitter-bg {
-  background: linear-gradient(45deg, #1da1f2, #0d8bd9);
+.platform-logo.twitter-bg {
+  background: #1da1f2;
   color: white;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-.facebook-bg {
-  background: linear-gradient(45deg, #1877f2, #0d6efd);
+.platform-logo.facebook-bg {
+  background: #1877f2;
   color: white;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .platform-card h3 {
-  font-size: 1.5rem;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
   font-weight: 600;
-  margin-bottom: 1rem;
   color: var(--text-primary);
 }
 
 .platform-card p {
-  color: var(--text-secondary);
-  line-height: 1.6;
   margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
 }
 
 .workflow-steps {
@@ -608,9 +580,9 @@
   }
 
   .platform-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 1.25rem;
+    width: 50px;
+    height: 50px;
+    margin: 0.25rem;
   }
 
   .platforms-section,
@@ -633,17 +605,16 @@
   }
 
   .platform-card {
-    padding: 1.5rem;
+    padding: 1rem;
   }
 
   .platform-logo {
     width: 60px;
     height: 60px;
-    font-size: 1.5rem;
   }
 
   .platform-card h3 {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
   }
 
   .platform-card p {
