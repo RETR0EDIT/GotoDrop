@@ -1,0 +1,18 @@
+/* Index des styles - Import sélectif pour optimiser le chargement */
+
+/* Styles globaux - toujours chargés */
+@import './globals.css';
+
+/* Styles de base pour les composants partagés */
+@import './components.css';
+
+/*
+ * Note: Les styles spécifiques aux composants et pages sont chargés
+ * directement dans leurs fichiers respectifs pour optimiser le chargement :
+ * - components/navigation.css
+ * - components/loading.css  
+ * - components/layout.css
+ * - pages/home.css
+ * - pages/user.css
+ * - pages/admin.css
+ */
