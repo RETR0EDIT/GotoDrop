@@ -1,5 +1,6 @@
 import { httpService } from './httpService';
 import { API_ENDPOINTS } from '../config/api';
+import { googleOAuthService } from './googleOAuthService';
 import type { User, UserSession, LoginRequest, RegisterRequest, ApiResponse } from '../types';
 
 class AuthService {
@@ -81,6 +82,67 @@ class AuthService {
       throw error instanceof Error ? error : new Error('Failed to get current user');
     }
   }
+
+  // === Méthodes Google OAuth ===
+
+  // Initier la connexion Google
+  initiateGoogleLogin(): void {
+    googleOAuthService.initiateGoogleLogin();
+  }
+
+  // Gérer le callback Google
+  async handleGoogleCallback(code: string, state: string): Promise<ApiResponse<UserSession>> {
+    try {
+      const googleAuthResponse = await googleOAuthService.handleGoogleCallback(code, state);
+
+      // Convertir la réponse Google au format standard
+      const session: UserSession = {
+        user: googleAuthResponse.user,
+        token: googleAuthResponse.token,
+        refreshToken: googleAuthResponse.session.refreshToken,
+        expiresAt: googleAuthResponse.session.expiresAt,
+      };
+
+      // Sauvegarder la session
+      this.setSession(session);
+
+      return {
+        success: true,
+        data: session,
+        message: 'Connexion Google réussie',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        errors: { general: [error instanceof Error ? error.message : 'Registration failed'] },
+      };
+    }
+  }
+
+  // Vérifier si Google OAuth est configuré
+  isGoogleOAuthAvailable(): boolean {
+    return googleOAuthService.isGoogleOAuthConfigured();
+  }
+
+  // Déconnexion avec révocation des tokens Google
+  async logoutWithGoogle(): Promise<void> {
+    const user = this.getUser();
+    const token = this.getToken();
+
+    // Révoquer les tokens Google si l'utilisateur s'est connecté via Google
+    if (token) {
+      try {
+        await googleOAuthService.revokeGoogleTokens(token);
+      } catch (error) {
+        console.warn('Impossible de révoquer les tokens Google:', error);
+      }
+    }
+
+    // Déconnexion normale
+    await this.logout();
+  }
+
+  // === Fin des méthodes Google OAuth ===
 
   // Gestion de la session locale
   private setSession(session: UserSession): void {
