@@ -1,0 +1,115 @@
+/* Pages d'erreur - 404 et 403 */
+.not-found-page,
+.unauthorized-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.not-found-content,
+.unauthorized-content {
+  text-align: center;
+  padding: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.error-code {
+  font-size: 6rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 1rem;
+  opacity: 0.8;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.not-found-content h1,
+.unauthorized-content h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.not-found-content p,
+.unauthorized-content p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.not-found-actions,
+.unauthorized-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.not-found-actions .btn,
+.unauthorized-actions .btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.not-found-actions .btn-primary,
+.unauthorized-actions .btn-primary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.not-found-actions .btn-primary:hover,
+.unauthorized-actions .btn-primary:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.not-found-actions .btn-outline,
+.unauthorized-actions .btn-outline {
+  background: transparent;
+  color: white;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.not-found-actions .btn-outline:hover,
+.unauthorized-actions .btn-outline:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: white;
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .error-code {
+    font-size: 4rem;
+  }
+
+  .not-found-content h1,
+  .unauthorized-content h1 {
+    font-size: 2rem;
+  }
+
+  .not-found-content p,
+  .unauthorized-content p {
+    font-size: 1.1rem;
+  }
+
+  .not-found-actions,
+  .unauthorized-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .not-found-actions .btn,
+  .unauthorized-actions .btn {
+    width: 200px;
+  }
+}
