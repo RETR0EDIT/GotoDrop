@@ -6,6 +6,9 @@
 /* Styles de base pour les composants partagés */
 @import './components.css';
 
+/* Styles des pages d'erreur - chargés globalement car utilisés rarement */
+@import './pages/error.css';
+
 /*
  * Note: Les styles spécifiques aux composants et pages sont chargés
  * directement dans leurs fichiers respectifs pour optimiser le chargement :
