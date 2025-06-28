@@ -1,20 +1,9 @@
 import { useState, useEffect } from 'react';
-
-export interface AuthUser {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'user';
-  avatar?: string;
-}
-
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
+import { authService } from '../services';
+import type { User, LoginRequest, RegisterRequest } from '../types';
 
 export interface UseAuthReturn {
-  user: AuthUser | null;
+  user: User | null;
   loading: boolean;
   error: string | null;
   isAuthenticated: boolean;
