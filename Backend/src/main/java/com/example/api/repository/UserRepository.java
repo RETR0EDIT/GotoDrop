@@ -17,10 +17,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     Optional<User> findByEmail(String email);
     
-    boolean existsByUsername(String username);
+    Boolean existsByUsername(String username);
     
-    boolean existsByEmail(String email);
+    Boolean existsByEmail(String email);
     
-    @Query("SELECT u FROM User u WHERE u.username LIKE %:keyword% OR u.email LIKE %:keyword%")
-    List<User> searchByKeyword(@Param("keyword") String keyword);
+    List<User> findByIsActive(Boolean isActive);
+    
+    @Query("SELECT u FROM User u WHERE u.firstName LIKE %:keyword% OR u.lastName LIKE %:keyword% OR u.username LIKE %:keyword% OR u.email LIKE %:keyword%")
+    List<User> searchUsers(@Param("keyword") String keyword);
+    
+    @Query("SELECT COUNT(u) FROM User u WHERE u.isActive = true")
+    Long countActiveUsers();
 }

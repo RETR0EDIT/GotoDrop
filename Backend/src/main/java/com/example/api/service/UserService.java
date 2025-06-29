@@ -1,71 +1,112 @@
 package com.example.api.service;
 
+import com.example.api.dto.UserResponse;
 import com.example.api.entity.User;
+import com.example.api.exception.UserNotFoundException;
 import com.example.api.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
-    
+
     @Autowired
     private UserRepository userRepository;
-    
-    // Créer un utilisateur
-    public User createUser(User user) {
-        if (userRepository.existsByUsername(user.getUsername())) {
-            throw new RuntimeException("Ce nom d'utilisateur existe déjà");
-        }
-        if (userRepository.existsByEmail(user.getEmail())) {
-            throw new RuntimeException("Cet email existe déjà");
-        }
-        return userRepository.save(user);
+
+    public List<UserResponse> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(this::convertToUserResponse)
+                .collect(Collectors.toList());
     }
-    
-    // Obtenir tous les utilisateurs
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+
+    public Page<UserResponse> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable)
+                .map(this::convertToUserResponse);
     }
-    
-    // Obtenir un utilisateur par ID
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
-    }
-    
-    // Obtenir un utilisateur par nom d'utilisateur
-    public Optional<User> getUserByUsername(String username) {
-        return userRepository.findByUsername(username);
-    }
-    
-    // Obtenir un utilisateur par email
-    public Optional<User> getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
-    
-    // Mettre à jour un utilisateur
-    public User updateUser(Long id, User userDetails) {
+
+    public UserResponse getUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'ID: " + id));
-        
-        user.setUsername(userDetails.getUsername());
-        user.setEmail(userDetails.getEmail());
-        user.setPassword(userDetails.getPassword());
-        
-        return userRepository.save(user);
+                .orElseThrow(() -> new UserNotFoundException("Utilisateur non trouvé avec l'ID: " + id));
+        return convertToUserResponse(user);
     }
-    
-    // Supprimer un utilisateur
+
+    public UserResponse getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Utilisateur non trouvé avec l'email: " + email));
+        return convertToUserResponse(user);
+    }
+
+    public List<UserResponse> searchUsers(String keyword) {
+        return userRepository.searchUsers(keyword).stream()
+                .map(this::convertToUserResponse)
+                .collect(Collectors.toList());
+    }
+
+    public List<UserResponse> getActiveUsers() {
+        return userRepository.findByIsActive(true).stream()
+                .map(this::convertToUserResponse)
+                .collect(Collectors.toList());
+    }
+
+    public UserResponse updateUser(Long id, User updatedUser) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("Utilisateur non trouvé avec l'ID: " + id));
+
+        // Mettre à jour les champs non-sensibles
+        if (updatedUser.getFirstName() != null) {
+            existingUser.setFirstName(updatedUser.getFirstName());
+        }
+        if (updatedUser.getLastName() != null) {
+            existingUser.setLastName(updatedUser.getLastName());
+        }
+        if (updatedUser.getPhoneNumber() != null) {
+            existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
+        }
+        if (updatedUser.getAvatarUrl() != null) {
+            existingUser.setAvatarUrl(updatedUser.getAvatarUrl());
+        }
+
+        User savedUser = userRepository.save(existingUser);
+        return convertToUserResponse(savedUser);
+    }
+
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'ID: " + id));
+                .orElseThrow(() -> new UserNotFoundException("Utilisateur non trouvé avec l'ID: " + id));
         userRepository.delete(user);
     }
-    
-    // Rechercher des utilisateurs
-    public List<User> searchUsers(String keyword) {
-        return userRepository.searchByKeyword(keyword);
+
+    public UserResponse toggleUserStatus(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("Utilisateur non trouvé avec l'ID: " + id));
+        
+        user.setIsActive(!user.getIsActive());
+        User savedUser = userRepository.save(user);
+        return convertToUserResponse(savedUser);
+    }
+
+    public Long countActiveUsers() {
+        return userRepository.countActiveUsers();
+    }
+
+    private UserResponse convertToUserResponse(User user) {
+        UserResponse userResponse = new UserResponse();
+        userResponse.setId(user.getId());
+        userResponse.setUsername(user.getUsername());
+        userResponse.setEmail(user.getEmail());
+        userResponse.setFirstName(user.getFirstName());
+        userResponse.setLastName(user.getLastName());
+        userResponse.setPhoneNumber(user.getPhoneNumber());
+        userResponse.setAvatarUrl(user.getAvatarUrl());
+        userResponse.setIsActive(user.getIsActive());
+        userResponse.setRoles(user.getRoles());
+        userResponse.setCreatedAt(user.getCreatedAt());
+        userResponse.setUpdatedAt(user.getUpdatedAt());
+        return userResponse;
     }
 }
