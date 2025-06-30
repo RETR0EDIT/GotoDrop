@@ -1,6 +1,7 @@
 package com.example.api.service;
 
 import com.example.api.dto.UserResponse;
+import com.example.api.entity.Role;
 import com.example.api.entity.User;
 import com.example.api.exception.UserNotFoundException;
 import com.example.api.repository.UserRepository;
@@ -84,7 +85,7 @@ public class UserService {
     public UserResponse toggleUserStatus(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("Utilisateur non trouvé avec l'ID: " + id));
-        
+
         user.setIsActive(!user.getIsActive());
         User savedUser = userRepository.save(user);
         return convertToUserResponse(savedUser);
@@ -92,6 +93,43 @@ public class UserService {
 
     public Long countActiveUsers() {
         return userRepository.countActiveUsers();
+    }
+
+    // Méthodes manquantes pour l'authentification et la gestion des utilisateurs
+    public UserResponse getUserByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Utilisateur non trouvé avec le nom: " + username));
+        return convertToUserResponse(user);
+    }
+
+    public User createUser(User user) {
+        return userRepository.save(user);
+    }
+
+    public User createAdmin(String username, String email, String password) {
+        User admin = new User(username, email, password);
+        admin.setRole(Role.ADMIN);
+        return userRepository.save(admin);
+    }
+
+    // Méthode pour récupérer l'entité User (nécessaire pour l'authentification)
+    public User getUserEntityByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Utilisateur non trouvé avec l'email: " + email));
+    }
+
+    public User getUserEntityById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("Utilisateur non trouvé avec l'ID: " + id));
+    }
+
+    // Méthodes pour vérifier l'existence (pour l'inscription)
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
     }
 
     private UserResponse convertToUserResponse(User user) {

@@ -1,122 +1,205 @@
 package com.example.api.controller;
 
-import com.example.api.dto.*;
-import com.example.api.service.AuthService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.example.api.dto.UserResponse;
+import com.example.api.entity.Role;
+import com.example.api.entity.User;
+import com.example.api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin(origins = { "http://localhost:3000", "http://localhost:5173" }, allowCredentials = "true")
 public class AuthController {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final String TOKEN_PREFIX = "fake-jwt-token-";
+    private static final String TOKEN_KEY = "token";
 
     @Autowired
-    private AuthService authService;
+    private UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request) {
-        String timestamp = LocalDateTime.now().format(formatter);
-        logger.info("🔐 [{}] LOGIN ATTEMPT - Email: {}, IP: {}, User-Agent: {}", 
-            timestamp, loginRequest.getEmail(), getClientIP(request), getUserAgent(request));
-        
+    public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest loginRequest) {
         try {
-            AuthResponse authResponse = authService.login(loginRequest);
-            logger.info("✅ [{}] LOGIN SUCCESS - Email: {}", timestamp, loginRequest.getEmail());
-            return ResponseEntity.ok(ApiResponse.success("Connexion réussie", authResponse));
+            // Pour la validation du mot de passe, nous devons récupérer l'entité User
+            User user = userService.getUserEntityByEmail(loginRequest.getEmail());
+
+            // Vérifier le mot de passe (en production, utilisez BCrypt)
+            if (!user.getPassword().equals(loginRequest.getPassword())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Email ou mot de passe incorrect"));
+            } // Créer la réponse de succès
+            String userToken = TOKEN_PREFIX + user.getId();
+            Map<String, Object> userData = Map.of(
+                    "id", user.getId(),
+                    "username", user.getUsername(),
+                    "email", user.getEmail(),
+                    "role", user.getRole().toString(),
+                    TOKEN_KEY, userToken);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Connexion réussie");
+            response.put("data", Map.of(
+                    "user", userData,
+                    TOKEN_KEY, userToken));
+
+            return ResponseEntity.ok(response);
+
         } catch (Exception e) {
-            logger.error("❌ [{}] LOGIN FAILED - Email: {}, Error: {}", 
-                timestamp, loginRequest.getEmail(), e.getMessage());
-            throw e;
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Erreur lors de la connexion"));
         }
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest registerRequest, HttpServletRequest request) {
-        String timestamp = LocalDateTime.now().format(formatter);
-        logger.info("📝 [{}] REGISTER ATTEMPT - Email: {}, Username: {}, IP: {}", 
-            timestamp, registerRequest.getEmail(), registerRequest.getUsername(), getClientIP(request));
-        
+    public ResponseEntity<Map<String, Object>> register(@RequestBody RegisterRequest registerRequest) {
         try {
-            AuthResponse authResponse = authService.register(registerRequest);
-            logger.info("✅ [{}] REGISTER SUCCESS - Email: {}", timestamp, registerRequest.getEmail());
-            return ResponseEntity.ok(ApiResponse.success("Inscription réussie", authResponse));
+            // Vérifier si l'email existe déjà
+            if (userService.existsByEmail(registerRequest.getEmail())) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(Map.of("error", "Cet email est déjà utilisé"));
+            }
+
+            // Vérifier si le nom d'utilisateur existe déjà
+            if (userService.existsByUsername(registerRequest.getUsername())) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(Map.of("error", "Ce nom d'utilisateur est déjà pris"));
+            }
+
+            // Créer un nouvel utilisateur
+            User newUser = new User();
+            newUser.setUsername(registerRequest.getUsername());
+            newUser.setEmail(registerRequest.getEmail());
+            newUser.setPassword(registerRequest.getPassword()); // En production, hasher le mot de passe
+            newUser.setRole(Role.USER);
+
+            User createdUser = userService.createUser(newUser);
+
+            String userToken = TOKEN_PREFIX + createdUser.getId();
+            Map<String, Object> userData = Map.of(
+                    "id", createdUser.getId(),
+                    "username", createdUser.getUsername(),
+                    "email", createdUser.getEmail(),
+                    "role", createdUser.getRole().toString(),
+                    TOKEN_KEY, userToken);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Inscription réussie");
+            response.put("data", Map.of(
+                    "user", userData,
+                    TOKEN_KEY, userToken));
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
         } catch (Exception e) {
-            logger.error("❌ [{}] REGISTER FAILED - Email: {}, Error: {}", 
-                timestamp, registerRequest.getEmail(), e.getMessage());
-            throw e;
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Erreur lors de l'inscription"));
         }
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(HttpServletRequest request) {
-        String timestamp = LocalDateTime.now().format(formatter);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        
-        logger.info("👤 [{}] GET CURRENT USER - Email: {}, IP: {}", timestamp, email, getClientIP(request));
-        
+    public ResponseEntity<Map<String, Object>> getCurrentUser(
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
-            UserResponse userResponse = authService.getCurrentUser(email);
-            logger.info("✅ [{}] GET CURRENT USER SUCCESS - Email: {}", timestamp, email);
-            return ResponseEntity.ok(ApiResponse.success(userResponse));
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Token manquant ou invalide"));
+            }
+
+            String token = authHeader.substring(7); // Enlever "Bearer "
+
+            // Extraire l'ID utilisateur du token simple (format: fake-jwt-token-{id})
+            if (!token.startsWith(TOKEN_PREFIX)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Token invalide"));
+            }
+
+            String userIdStr = token.substring(TOKEN_PREFIX.length());
+            Long userId;
+            try {
+                userId = Long.parseLong(userIdStr);
+            } catch (NumberFormatException e) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Token invalide"));
+            }
+
+            try {
+                User user = userService.getUserEntityById(userId);
+                Map<String, Object> userData = Map.of(
+                        "id", user.getId(),
+                        "username", user.getUsername(),
+                        "email", user.getEmail(),
+                        "role", user.getRole().toString());
+
+                return ResponseEntity.ok(userData);
+            } catch (Exception ex) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Utilisateur non trouvé"));
+            }
+
         } catch (Exception e) {
-            logger.error("❌ [{}] GET CURRENT USER FAILED - Email: {}, Error: {}", 
-                timestamp, email, e.getMessage());
-            throw e;
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Erreur lors de la vérification du token"));
         }
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<String>> logout(HttpServletRequest request) {
-        String timestamp = LocalDateTime.now().format(formatter);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        
-        logger.info("🚪 [{}] LOGOUT - Email: {}, IP: {}", timestamp, email, getClientIP(request));
-        
-        // Avec JWT, la déconnexion côté serveur n'est pas nécessaire
-        // Le client doit simplement supprimer le token
-        return ResponseEntity.ok(ApiResponse.success("Déconnexion réussie", "Token invalidé côté client"));
-    }
+    // Classes internes pour les requêtes
+    public static class LoginRequest {
+        private String email;
+        private String password;
 
-    // Méthodes utilitaires pour récupérer les informations de la requête
-    private String getClientIP(HttpServletRequest request) {
-        try {
-            String xForwardedFor = request.getHeader("X-Forwarded-For");
-            if (xForwardedFor != null && !xForwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(xForwardedFor)) {
-                return xForwardedFor.split(",")[0].trim();
-            }
-            
-            String xRealIP = request.getHeader("X-Real-IP");
-            if (xRealIP != null && !xRealIP.isEmpty() && !"unknown".equalsIgnoreCase(xRealIP)) {
-                return xRealIP;
-            }
-            
-            return request.getRemoteAddr();
-        } catch (Exception e) {
-            return "unknown";
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
         }
     }
 
-    private String getUserAgent(HttpServletRequest request) {
-        try {
-            String userAgent = request.getHeader("User-Agent");
-            return userAgent != null ? userAgent : "unknown";
-        } catch (Exception e) {
-            return "unknown";
+    public static class RegisterRequest {
+        private String username;
+        private String email;
+        private String password;
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
         }
     }
 }
